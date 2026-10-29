@@ -31,7 +31,7 @@ async def process_file(source_id: int, file_path: str):
         
         if file_ext == '.pdf':
             content = extract_from_pdf(file_path)
-        elif file_ext in ['.docx', '.doc']:
+        elif file_ext == '.docx':
             content = extract_from_docx(file_path)
         elif file_ext in ['.txt', '.md']:
             content = extract_from_text(file_path)
