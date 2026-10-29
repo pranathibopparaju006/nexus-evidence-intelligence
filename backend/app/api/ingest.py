@@ -10,6 +10,7 @@ from app.models.database import Project, User, DataSource, ProjectStatus
 from app.models.schemas import DataSourceResponse
 from app.services.ingestion import process_file
 from app.config import settings
+from app.utils.upload_validation import validate_upload
 
 router = APIRouter()
 
@@ -40,21 +41,20 @@ async def ingest_file(
             detail=f"File too large. Max size: {settings.MAX_FILE_SIZE / 1024 / 1024}MB"
         )
     
-    original_filename = os.path.basename(file.filename or "")
+    original_filename = os.path.basename((file.filename or "").replace("\\", "/"))
     file_ext = os.path.splitext(original_filename)[1].lower()
-    allowed_extensions = {
-        ".pdf", ".doc", ".docx", ".txt", ".md",
-        ".png", ".jpg", ".jpeg", ".gif", ".json", ".csv"
-    }
-    if file_ext not in allowed_extensions:
-        raise HTTPException(status_code=415, detail="Unsupported file type")
+    try:
+        original_filename, file_ext = validate_upload(
+            file.filename, file_size, settings.MAX_FILE_SIZE
+        )
+    except ValueError as exc:
+        status_code = 415 if str(exc) == "Unsupported file type" else 413
+        detail = "Unsupported file type" if status_code == 415 else (
+            f"File too large. Max size: {settings.MAX_FILE_SIZE / 1024 / 1024}MB"
+        )
+        raise HTTPException(status_code=status_code, detail=detail) from exc
 
     content = await file.read()
-    if len(content) > settings.MAX_FILE_SIZE:
-        raise HTTPException(
-            status_code=413,
-            detail=f"File too large. Max size: {settings.MAX_FILE_SIZE / 1024 / 1024}MB"
-        )
 
     unique_filename = f"{uuid.uuid4()}{file_ext}"
     os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
