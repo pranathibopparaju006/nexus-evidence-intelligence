@@ -31,3 +31,13 @@ def test_production_accepts_configured_secrets():
         NEO4J_PASSWORD="a-strong-database-password",
     )
     assert settings.ENVIRONMENT == "production"
+
+
+def test_production_rejects_example_secret_placeholder():
+    with pytest.raises(ValidationError, match="SECRET_KEY"):
+        Settings(
+            _env_file=None,
+            ENVIRONMENT="production",
+            SECRET_KEY="change-this-in-production",
+            NEO4J_PASSWORD="a-strong-database-password",
+        )
