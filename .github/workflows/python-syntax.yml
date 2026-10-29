@@ -4,6 +4,9 @@ on:
   push:
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   compile-and-test:
     runs-on: ubuntu-latest
@@ -14,6 +17,8 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+          cache: "pip"
+          cache-dependency-path: backend/requirements.txt
       - name: Install API test dependencies
         run: python -m pip install "fastapi==0.104.1" "httpx==0.25.2" "python-multipart==0.0.6" "pydantic==2.5.0" "pydantic-settings==2.1.0" "sqlalchemy==2.0.23" "psycopg2-binary==2.9.9" "python-jose[cryptography]==3.3.0" "passlib==1.7.4" "bcrypt==3.2.2" "PyPDF2==3.0.1" "python-docx==1.1.0" "pillow==10.1.0" "pytesseract==0.3.10" "pytest==7.4.3"
       - name: Run settings, upload validation, and upload API tests
