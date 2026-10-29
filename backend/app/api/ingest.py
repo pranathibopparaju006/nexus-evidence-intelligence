@@ -10,6 +10,7 @@ from app.models.database import Project, User, DataSource, ProjectStatus
 from app.models.schemas import DataSourceResponse
 from app.services.ingestion import process_file
 from app.config import settings
+from app.utils.upload_validation import validate_upload
 
 router = APIRouter()
 
@@ -40,17 +41,31 @@ async def ingest_file(
             detail=f"File too large. Max size: {settings.MAX_FILE_SIZE / 1024 / 1024}MB"
         )
     
-    file_ext = os.path.splitext(file.filename)[1]
+    original_filename = os.path.basename((file.filename or "").replace("\\", "/"))
+    file_ext = os.path.splitext(original_filename)[1].lower()
+    try:
+        original_filename, file_ext = validate_upload(
+            file.filename, file_size, settings.MAX_FILE_SIZE
+        )
+    except ValueError as exc:
+        status_code = 415 if str(exc) == "Unsupported file type" else 413
+        detail = "Unsupported file type" if status_code == 415 else (
+            f"File too large. Max size: {settings.MAX_FILE_SIZE / 1024 / 1024}MB"
+        )
+        raise HTTPException(status_code=status_code, detail=detail) from exc
+
+    content = await file.read()
+
     unique_filename = f"{uuid.uuid4()}{file_ext}"
+    os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
     storage_path = os.path.join(settings.UPLOAD_DIR, unique_filename)
-    
+
     with open(storage_path, "wb") as buffer:
-        content = await file.read()
         buffer.write(content)
     
     db_source = DataSource(
         project_id=project_id,
-        filename=file.filename,
+        filename=original_filename,
         file_type=file.content_type or "application/octet-stream",
         storage_path=storage_path,
         file_size=file_size,

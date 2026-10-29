@@ -1,5 +1,6 @@
 import os
 import json
+import logging
 from datetime import datetime
 from typing import Dict, Any
 
@@ -11,10 +12,13 @@ import pytesseract
 from app.core.database import SessionLocal
 from app.models.database import DataSource
 
+logger = logging.getLogger(__name__)
+
 
 async def process_file(source_id: int, file_path: str):
     """Process uploaded file and extract content."""
     db = SessionLocal()
+    source = None
     try:
         source = db.query(DataSource).filter(DataSource.id == source_id).first()
         if not source:
@@ -49,10 +53,12 @@ async def process_file(source_id: int, file_path: str):
         
         db.commit()
         
-    except Exception as e:
-        source.ingestion_status = "error"
-        source.extracted_metadata = {"error": str(e)}
-        db.commit()
+    except Exception:
+        logger.exception("Document ingestion failed for source_id=%s", source_id)
+        if source is not None:
+            source.ingestion_status = "error"
+            source.extracted_metadata = {"error": "Document processing failed. Check server logs for details."}
+            db.commit()
     finally:
         db.close()
 
