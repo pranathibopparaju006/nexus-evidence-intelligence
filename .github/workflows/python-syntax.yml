@@ -1,11 +1,11 @@
-name: Python syntax checks
+name: Python checks
 
 on:
   push:
   pull_request:
 
 jobs:
-  compile:
+  compile-and-test-config:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -14,5 +14,10 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+      - name: Install lightweight settings test dependencies
+        run: python -m pip install "pydantic==2.5.0" "pydantic-settings==2.1.0" "pytest==7.4.3"
+      - name: Test production secret validation
+        working-directory: backend
+        run: python -m pytest -q tests/test_config.py
       - name: Compile backend Python files
         run: python -m compileall -q backend
