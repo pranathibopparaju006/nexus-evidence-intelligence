@@ -1,7 +1,7 @@
 import os
 
 ALLOWED_UPLOAD_EXTENSIONS = frozenset({
-    ".pdf", ".doc", ".docx", ".txt", ".md",
+    ".pdf", ".docx", ".txt", ".md",
     ".png", ".jpg", ".jpeg", ".gif", ".json", ".csv",
 })
 
