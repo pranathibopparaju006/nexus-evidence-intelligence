@@ -182,6 +182,19 @@ docker compose ps
 
 The backend mounts authentication endpoints under `/api/v1/auth`. For example, registration is `POST http://localhost:8000/api/v1/auth/register`, not `/auth/register`. The login endpoint is `POST http://localhost:8000/api/v1/auth/login`; it accepts form fields named `username` and `password` (OAuth2 password form). Use the interactive API docs at `/docs` to inspect request schemas and responses.
 
+### Run automated tests
+
+From the repository root, install the lightweight test dependencies in a Python 3.11 environment and run the backend checks:
+
+```powershell
+python -m pip install "fastapi==0.104.1" "httpx==0.25.2" "python-multipart==0.0.6" "pydantic==2.5.0" "pydantic-settings==2.1.0" "sqlalchemy==2.0.23" "psycopg2-binary==2.9.9" "python-jose[cryptography]==3.3.0" "passlib==1.7.4" "bcrypt==3.2.2" "PyPDF2==3.0.1" "python-docx==1.1.0" "pillow==10.1.0" "pytesseract==0.3.10" "pytest==7.4.3"
+Set-Location backend
+python -m pytest -q tests/test_config.py tests/test_upload_validation.py tests/test_ingest_api.py
+python -m compileall -q .
+```
+
+The upload API tests exercise authorization, rejected file types, size limits, successful storage, and cleanup when database persistence fails using a test client and mocked database. They do not replace a full Docker/PostgreSQL/Neo4j end-to-end run.
+
 ### Access NEXUS
 
 | Service | URL |
