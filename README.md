@@ -156,7 +156,7 @@ The repository's configuration files define the exact service setup. Check those
 6. Double-click `RUN_NEXUS.bat`.
 7. Wait for the services to start, then open the application.
 
-> **Security note:** `.env.example` contains placeholders. Before running Docker Compose, set `POSTGRES_PASSWORD`, `NEO4J_PASSWORD`, and `SECRET_KEY` in your local `.env`; Compose requires these values. Use a unique random `SECRET_KEY` of at least 32 characters and strong database passwords. For production, configure secrets through your deployment's secret manager. Never commit your real `.env` file or production secrets.
+> **Security note:** `.env.example` contains placeholders. Before running Docker Compose, set `POSTGRES_PASSWORD`, `NEO4J_PASSWORD`, `MINIO_ROOT_PASSWORD`, and `SECRET_KEY` in your local `.env`; Compose requires these values. Use a unique random `SECRET_KEY` of at least 32 characters and strong database/object-storage passwords. For production, configure secrets through your deployment's secret manager. Never commit your real `.env` file or production secrets.
 
 The backend waits for PostgreSQL and Neo4j health checks before starting. Redis is also health-checked; Qdrant is started as a dependency.
 
