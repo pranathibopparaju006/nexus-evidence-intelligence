@@ -41,3 +41,28 @@ def test_production_rejects_example_secret_placeholder():
             SECRET_KEY="change-this-in-production",
             NEO4J_PASSWORD="a-strong-database-password",
         )
+
+def test_registration_schema_accepts_valid_field_lengths():
+    from app.models.schemas import UserCreate
+
+    user = UserCreate(username="student01", email="student@example.com", password="strong-pass-123")
+    assert user.username == "student01"
+    assert user.email == "student@example.com"
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {"username": "ab", "email": "student@example.com", "password": "strong-pass-123"},
+        {"username": "x" * 51, "email": "student@example.com", "password": "strong-pass-123"},
+        {"username": "student01", "email": "x" * 255, "password": "strong-pass-123"},
+        {"username": "student01", "email": "student@example.com", "password": "short"},
+        {"username": "student01", "email": "student@example.com", "password": "x" * 73},
+    ],
+)
+def test_registration_schema_rejects_out_of_range_fields(payload):
+    from app.models.schemas import UserCreate
+
+    with pytest.raises(ValidationError):
+        UserCreate(**payload)
+
