@@ -35,12 +35,6 @@ async def ingest_file(
     file_size = file.file.tell()
     file.file.seek(0)
     
-    if file_size > settings.MAX_FILE_SIZE:
-        raise HTTPException(
-            status_code=400, 
-            detail=f"File too large. Max size: {settings.MAX_FILE_SIZE / 1024 / 1024}MB"
-        )
-    
     original_filename = os.path.basename((file.filename or "").replace("\\", "/"))
     file_ext = os.path.splitext(original_filename)[1].lower()
     try:
