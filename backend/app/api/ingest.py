@@ -40,17 +40,32 @@ async def ingest_file(
             detail=f"File too large. Max size: {settings.MAX_FILE_SIZE / 1024 / 1024}MB"
         )
     
-    file_ext = os.path.splitext(file.filename)[1]
+    original_filename = os.path.basename(file.filename or "")
+    file_ext = os.path.splitext(original_filename)[1].lower()
+    allowed_extensions = {
+        ".pdf", ".doc", ".docx", ".txt", ".md",
+        ".png", ".jpg", ".jpeg", ".gif", ".json", ".csv"
+    }
+    if file_ext not in allowed_extensions:
+        raise HTTPException(status_code=415, detail="Unsupported file type")
+
+    content = await file.read()
+    if len(content) > settings.MAX_FILE_SIZE:
+        raise HTTPException(
+            status_code=413,
+            detail=f"File too large. Max size: {settings.MAX_FILE_SIZE / 1024 / 1024}MB"
+        )
+
     unique_filename = f"{uuid.uuid4()}{file_ext}"
+    os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
     storage_path = os.path.join(settings.UPLOAD_DIR, unique_filename)
-    
+
     with open(storage_path, "wb") as buffer:
-        content = await file.read()
         buffer.write(content)
     
     db_source = DataSource(
         project_id=project_id,
-        filename=file.filename,
+        filename=original_filename,
         file_type=file.content_type or "application/octet-stream",
         storage_path=storage_path,
         file_size=file_size,
