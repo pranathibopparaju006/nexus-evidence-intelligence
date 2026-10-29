@@ -15,7 +15,7 @@ jobs:
         with:
           python-version: "3.11"
       - name: Install API test dependencies
-        run: python -m pip install "fastapi==0.104.1" "httpx==0.25.2" "python-multipart==0.0.6" "pydantic==2.5.0" "pydantic-settings==2.1.0" "sqlalchemy==2.0.23" "python-jose[cryptography]==3.3.0" "passlib==1.7.4" "bcrypt==3.2.2" "pytest==7.4.3"
+        run: python -m pip install "fastapi==0.104.1" "httpx==0.25.2" "python-multipart==0.0.6" "pydantic==2.5.0" "pydantic-settings==2.1.0" "sqlalchemy==2.0.23" "psycopg2-binary==2.9.9" "python-jose[cryptography]==3.3.0" "passlib==1.7.4" "bcrypt==3.2.2" "pytest==7.4.3"
       - name: Run settings, upload validation, and upload API tests
         working-directory: backend
         run: python -m pytest -q tests/test_config.py tests/test_upload_validation.py tests/test_ingest_api.py
