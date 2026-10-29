@@ -1,3 +1,4 @@
+import logging
 import os
 import uuid
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, BackgroundTasks
@@ -13,6 +14,7 @@ from app.config import settings
 from app.utils.upload_validation import validate_upload
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 @router.post("/{project_id}/ingest", response_model=DataSourceResponse)
@@ -65,13 +67,24 @@ async def ingest_file(
         file_size=file_size,
         ingestion_status="pending"
     )
-    db.add(db_source)
-    project.status = ProjectStatus.INGESTING
-    db.commit()
-    db.refresh(db_source)
-    
+    try:
+        db.add(db_source)
+        project.status = ProjectStatus.INGESTING
+        db.commit()
+        db.refresh(db_source)
+    except Exception as exc:
+        db.rollback()
+        try:
+            os.remove(storage_path)
+        except OSError:
+            logger.warning("Could not clean up failed upload at %s", storage_path)
+        logger.exception("Could not save upload metadata for project_id=%s", project_id)
+        raise HTTPException(
+            status_code=500,
+            detail="Could not save uploaded file. Please try again."
+        ) from exc
+
     background_tasks.add_task(process_file, db_source.id, storage_path)
-    
     return db_source
 
 
