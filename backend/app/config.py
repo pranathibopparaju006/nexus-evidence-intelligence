@@ -1,5 +1,6 @@
 from functools import lru_cache
 
+from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -10,6 +11,7 @@ class Settings(BaseSettings):
     # =========================================================
 
     APP_NAME: str = "NEXUS"
+    ENVIRONMENT: str = "development"
     DEBUG: bool = False
 
 
@@ -73,6 +75,19 @@ class Settings(BaseSettings):
 
     UPLOAD_DIR: str = "./uploads"
     MAX_FILE_SIZE: int = 50 * 1024 * 1024
+
+
+    @model_validator(mode="after")
+    def validate_production_secrets(self):
+        """Prevent known development credentials from being used in production."""
+        if self.ENVIRONMENT.strip().lower() == "production":
+            if self.SECRET_KEY == "change-this-in-production" or len(self.SECRET_KEY) < 32:
+                raise ValueError(
+                    "Set SECRET_KEY to a unique random value of at least 32 characters in production."
+                )
+            if self.NEO4J_PASSWORD == "nexus-nexus":
+                raise ValueError("Set a strong NEO4J_PASSWORD in production.")
+        return self
 
 
     # =========================================================
