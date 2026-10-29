@@ -1,5 +1,6 @@
 # NEXUS — Narrative Evolution & Evidence Intelligence System
 
+[![GitHub Actions](https://github.com/pranathibopparaju006/nexus-evidence-intelligence/actions/workflows/python-syntax.yml/badge.svg)](https://github.com/pranathibopparaju006/nexus-evidence-intelligence/actions/workflows/python-syntax.yml)
 **An AI-powered evidence intelligence platform for analyzing fragmented information, tracing narrative evolution, connecting evidence, and identifying patterns with transparent, evidence-aware review.**
 
 [![Python](https://img.shields.io/badge/Python-3.11-blue)](https://www.python.org/)
@@ -298,3 +299,4 @@ This project is intended to be distributed under the MIT License. See the [`LICE
 ---
 
 **NEXUS — Connect the evidence. Trace the narrative. Review the conclusion.**
+
