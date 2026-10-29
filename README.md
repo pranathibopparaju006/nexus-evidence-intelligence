@@ -156,6 +156,8 @@ The repository's configuration files define the exact service setup. Check those
 6. Double-click `RUN_NEXUS.bat`.
 7. Wait for the services to start, then open the application.
 
+> **Security note:** `.env.example` contains local-development credentials only. Before any production deployment, set a unique random `SECRET_KEY` (at least 32 characters), a strong `NEO4J_PASSWORD`, and the intended API key through your deployment's secret manager. Never commit your real `.env` file or production secrets.
+
 ### Option B — Manual Setup
 
 Create your local environment file:
