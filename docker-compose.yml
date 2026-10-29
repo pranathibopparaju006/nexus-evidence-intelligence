@@ -97,7 +97,7 @@ services:
     command: server /data --console-address ":9001"
     environment:
       - MINIO_ROOT_USER=nexus
-      - MINIO_ROOT_PASSWORD=nexus-nexus-nexus
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD:?Set MINIO_ROOT_PASSWORD in your .env file}
     volumes:
       - minio_data:/data
     ports:
