@@ -27,6 +27,8 @@ class FakeDB:
         self.project = project
         self.added = []
         self.committed = False
+        self.fail_commit = False
+        self.rolled_back = False
 
     def query(self, model):
         return FakeQuery(self.project)
@@ -35,7 +37,12 @@ class FakeDB:
         self.added.append(value)
 
     def commit(self):
+        if self.fail_commit:
+            raise RuntimeError("simulated database failure")
         self.committed = True
+
+    def rollback(self):
+        self.rolled_back = True
 
     def refresh(self, value):
         value.id = 42
@@ -100,3 +107,28 @@ def test_ingest_saves_supported_file_with_safe_unique_name(api_client):
     assert saved_files[0].name.endswith(".txt")
     assert saved_files[0].name != "notes.TXT"
     assert saved_files[0].read_bytes() == b"study notes"
+
+
+def test_ingest_rejects_file_over_size_limit(api_client, monkeypatch):
+    client, db, _, upload_dir = api_client
+    monkeypatch.setattr(ingest.settings, "MAX_FILE_SIZE", 4)
+    response = client.post(
+        "/api/v1/projects/7/ingest",
+        files={"file": ("notes.txt", b"this is too large", "text/plain")},
+    )
+    assert response.status_code == 413
+    assert not list(Path(upload_dir).iterdir())
+    assert db.added == []
+
+
+def test_ingest_cleans_up_file_when_database_save_fails(api_client):
+    client, db, _, upload_dir = api_client
+    db.fail_commit = True
+    response = client.post(
+        "/api/v1/projects/7/ingest",
+        files={"file": ("notes.txt", b"study notes", "text/plain")},
+    )
+    assert response.status_code == 500
+    assert response.json()["detail"] == "Could not save uploaded file. Please try again."
+    assert db.rolled_back is True
+    assert not list(Path(upload_dir).iterdir())
