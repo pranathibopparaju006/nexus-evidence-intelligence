@@ -178,6 +178,10 @@ Check service status:
 docker compose ps
 ```
 
+### Authentication API paths
+
+The backend mounts authentication endpoints under `/api/v1/auth`. For example, registration is `POST http://localhost:8000/api/v1/auth/register`, not `/auth/register`. The login endpoint is `POST http://localhost:8000/api/v1/auth/login`; it accepts form fields named `username` and `password` (OAuth2 password form). Use the interactive API docs at `/docs` to inspect request schemas and responses.
+
 ### Access NEXUS
 
 | Service | URL |
